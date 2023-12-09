@@ -1,1 +1,82 @@
+```{r}
+ 
+install.packages("tidytuesdayR")
+library(tidytuesdayR)
+library(tidyverse)
+library(ggplot2)
 
+
+tuesdata <- tidytuesdayR::tt_load('2023-11-28')
+
+
+drwho_episodes <- tuesdata$drwho_episodes
+drwho_directors <- tuesdata$drwho_directors
+drwho_writers <- tuesdata$drwho_writers
+
+
+
+
+```
+
+```{r}
+#directors 
+drwho_directors |>
+  group_by(director) |>
+  count()
+
+#writers 
+drwho_writers |>
+  group_by(writer) |>
+  count() |>
+  arrange(desc(n))
+
+#merge
+mer<-merge(drwho_writers,drwho_episodes)
+```
+
+Do writer that have higehr rated episode higher ratings write more episodes?
+
+```{r}
+mer_count<-mer |>
+  group_by(writer) |>
+  count()
+
+mer_avg <-mer |>
+  group_by(writer)|>
+  summarise(avg = mean(rating),
+            ) 
+mer_view <- mer |>
+  group_by(writer)|>
+  summarise(avg_view = mean(uk_viewers))
+
+merge(mer_avg,mer_count) |>
+  merge(mer_view)|>
+  arrange(desc(n)) |>
+  ggplot(aes(x = n, y = avg)) +
+  geom_point(color = "Grey", size = 4, shape = 17, stroke = 2) +
+  geom_smooth(method = "lm", se = FALSE, color = 'red') +
+  labs(x = "Number of episodes Written",
+       y = "Average Rating Across Episodes",
+       title = "Do writer's of Doctor Who Episodes
+      with Higher Ratings 
+      Write More Episodes?",
+      subtitle = "imagine the triangles are Darlecks :)")
+  
+merge(mer_avg,mer_count) |>
+  merge(mer_view)|>
+  arrange(desc(n)) |>
+  ggplot(aes(x = n, y = avg_view)) +
+  geom_point(, size = 4, shape = 17, stroke = 2) +
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") +
+  theme_minimal() +
+  scale_color_gradient(low = "blue", high = "pink") +
+  labs(x = "Number of episodes Written",
+       y = "Average Rating Across Episodes",
+       title = "Do writer's of Doctor Who Episodes
+with More Viewers 
+Write More Episodes?",
+      subtitle = "don't these guys look like lil robots :o 
+Scary!!
+They have Lasers and fabulous colors!") 
+```
+We see a slight positive correlation between average episode rating and number of episodes written
